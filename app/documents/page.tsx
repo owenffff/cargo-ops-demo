@@ -71,7 +71,7 @@ export default function DocumentsPage() {
     0,
   )
   const lowConfidenceDocs = Object.values(shipmentDocuments).reduce(
-    (sum, group) => sum + group.documents.filter((d) => d.aiConfidenceScore < 85).length,
+    (sum, group) => sum + group.documents.filter((d) => d.aiConfidenceScore < 95).length,
     0,
   )
 

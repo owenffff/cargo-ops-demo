@@ -144,11 +144,12 @@ auditTrail.addEntry(
 ### AI Confidence Scoring
 
 Documents have `aiConfidenceScore` (0-100) representing extraction confidence:
-- **High (85-100)**: Green, auto-proceed
-- **Medium (70-84)**: Yellow, review recommended
-- **Low (<70)**: Red, manual review required
+- **High (95-100)**: Green, auto-proceed
+- **Medium (<95)**: Amber/Yellow, pending review (manual review required)
 
 Use `<ConfidenceBar value={score} />` component to display scores consistently.
+
+**Note:** The system uses a strict 95% threshold. Any document below 95% is flagged as "Pending Review" and shows amber/yellow coloring to indicate it requires manual verification before proceeding.
 
 ### Validation and Tolerance Checking
 

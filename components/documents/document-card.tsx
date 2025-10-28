@@ -16,7 +16,7 @@ interface DocumentCardProps {
 }
 
 export function DocumentCard({ document, shipmentNumber, onView, onDownload }: DocumentCardProps) {
-  const isLowConfidence = document.aiConfidenceScore < 85
+  const needsReview = document.aiConfidenceScore < 95
   const source = document.source || "email"
 
   return (
@@ -24,12 +24,19 @@ export function DocumentCard({ document, shipmentNumber, onView, onDownload }: D
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-start gap-3 flex-1">
-          <div className={`p-2 rounded-lg ${isLowConfidence ? "bg-orange-50" : "bg-blue-50"}`}>
-            <FileText className={`w-5 h-5 ${isLowConfidence ? "text-orange-600" : "text-blue-600"}`} />
+          <div className={`p-2 rounded-lg ${needsReview ? "bg-amber-50" : "bg-green-50"}`}>
+            <FileText className={`w-5 h-5 ${needsReview ? "text-amber-600" : "text-green-600"}`} />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-medium text-gray-900 truncate">{document.documentName}</h3>
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-medium text-gray-900 truncate">{document.documentName}</h3>
+              {needsReview && (
+                <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded font-medium">
+                  Pending Review
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
               <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-700 rounded">{document.documentType}</span>
               <span className="text-xs text-gray-500">Shipment {shipmentNumber}</span>
             </div>
@@ -54,10 +61,10 @@ export function DocumentCard({ document, shipmentNumber, onView, onDownload }: D
           <span className="text-xs font-medium text-gray-900">{document.aiConfidenceScore}%</span>
         </div>
         <ConfidenceBar score={document.aiConfidenceScore} />
-        {isLowConfidence && (
-          <div className="flex items-center gap-1 mt-2 text-xs text-orange-600">
+        {needsReview && (
+          <div className="flex items-center gap-1 mt-2 text-xs text-amber-600">
             <AlertCircle className="w-3 h-3" />
-            <span>Low confidence - manual review recommended</span>
+            <span>Below 95% confidence - awaiting review</span>
           </div>
         )}
       </div>

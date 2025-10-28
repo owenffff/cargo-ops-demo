@@ -8,9 +8,8 @@ interface ConfidenceBarProps {
 
 export function ConfidenceBar({ score, showLabel = true, size = "md" }: ConfidenceBarProps) {
   const getColor = (score: number) => {
-    if (score >= 85) return "bg-green-500"
-    if (score >= 70) return "bg-amber-500"
-    return "bg-red-500"
+    if (score >= 95) return "bg-green-500"
+    return "bg-amber-500"
   }
 
   const heights = {

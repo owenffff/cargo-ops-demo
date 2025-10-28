@@ -1,8 +1,9 @@
 "use client"
 
-import type { Shipment } from "@/types"
+import type { Shipment, OpsType } from "@/types"
 import { Check, Circle } from "lucide-react"
 import Link from "next/link"
+import { Badge } from "@/components/ui/badge"
 
 interface ShipmentsTableProps {
   shipments: Shipment[]
@@ -25,6 +26,7 @@ export function ShipmentsTable({ shipments }: ShipmentsTableProps) {
                 Vessel Name
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">ETA</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Ops Type</th>
               <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                 Pre-Submission
               </th>
@@ -53,6 +55,13 @@ export function ShipmentsTable({ shipments }: ShipmentsTableProps) {
                 <td className="px-4 py-4 text-sm text-gray-700">{shipment.transactionStartTime}</td>
                 <td className="px-4 py-4 text-sm text-gray-700">{shipment.vesselName}</td>
                 <td className="px-4 py-4 text-sm text-gray-700">{shipment.eta}</td>
+                <td className="px-4 py-4">
+                  <div className="flex flex-col gap-1">
+                    {(shipment.opsTypes || []).map((opsType) => (
+                      <OpsTypeBadge key={opsType} opsType={opsType} />
+                    ))}
+                  </div>
+                </td>
                 <td className="px-4 py-4 text-center">
                   <StageIndicator completed={shipment.stages.preSubmission} />
                 </td>
@@ -90,5 +99,21 @@ function StageIndicator({ completed }: { completed: boolean }) {
         </div>
       )}
     </div>
+  )
+}
+
+function OpsTypeBadge({ opsType }: { opsType: OpsType }) {
+  const variants: Record<OpsType, { variant: "secondary" | "default"; className: string }> = {
+    Bunkering: { variant: "secondary", className: "bg-gray-200 text-gray-700 hover:bg-gray-200" },
+    Discharge: { variant: "default", className: "bg-blue-500 text-white hover:bg-blue-500" },
+    Loading: { variant: "default", className: "bg-blue-500 text-white hover:bg-blue-500" },
+  }
+
+  const config = variants[opsType]
+
+  return (
+    <Badge variant={config.variant} className={`${config.className} justify-center text-xs`}>
+      {opsType}
+    </Badge>
   )
 }

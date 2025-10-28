@@ -24,14 +24,24 @@ export default function HomePage() {
       LocalStorage.setShipments(mockShipments)
       storedShipments = mockShipments
     } else {
+      // Migrate old shipments to add opsTypes if missing
+      const migratedShipments = storedShipments.map((shipment) => {
+        if (!shipment.opsTypes) {
+          return { ...shipment, opsTypes: ["Bunkering", "Discharge", "Loading"] }
+        }
+        return shipment
+      })
+
       // Merge: add any mock shipments that don't exist in stored data
-      const storedIds = new Set(storedShipments.map((s) => s.id))
+      const storedIds = new Set(migratedShipments.map((s) => s.id))
       const newMockShipments = mockShipments.filter((ms) => !storedIds.has(ms.id))
 
-      if (newMockShipments.length > 0) {
-        const mergedShipments = [...storedShipments, ...newMockShipments]
+      if (newMockShipments.length > 0 || migratedShipments.length !== storedShipments.length) {
+        const mergedShipments = [...migratedShipments, ...newMockShipments]
         LocalStorage.setShipments(mergedShipments)
         storedShipments = mergedShipments
+      } else {
+        storedShipments = migratedShipments
       }
     }
 
@@ -64,7 +74,7 @@ export default function HomePage() {
     setAlerts(updatedAlerts.filter((a) => !a.dismissed))
   }
 
-  const openShipmentCount = shipments.filter((s) => s.status !== "completed").length
+  const openShipmentCount = shipments.length
 
   return (
     <div className="min-h-screen bg-gray-50">

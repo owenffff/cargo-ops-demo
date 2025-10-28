@@ -151,7 +151,7 @@ export default function ValidationPage() {
   }
 
   const totalBLUnits = documents.reduce((sum, doc) => sum + (doc.numberOfUnits || 0), 0)
-  const lowConfidenceDocs = documents.filter((doc) => doc.aiConfidenceScore < 85)
+  const lowConfidenceDocs = documents.filter((doc) => doc.aiConfidenceScore < 95)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -265,9 +265,9 @@ export default function ValidationPage() {
             <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-amber-900">Low Confidence Score Detected</p>
+                <p className="font-semibold text-amber-900">Pending Review</p>
                 <p className="text-sm text-amber-800">
-                  {lowConfidenceDocs.length} document(s) have confidence scores below 85%. Please review and verify.
+                  {lowConfidenceDocs.length} document(s) have confidence scores below 95%. Please review and verify before proceeding.
                 </p>
               </div>
             </div>
@@ -293,11 +293,16 @@ export default function ValidationPage() {
                         <div className="flex items-center gap-2">
                           <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden max-w-[100px]">
                             <div
-                              className={`h-full ${doc.aiConfidenceScore >= 85 ? "bg-green-500" : "bg-amber-500"}`}
+                              className={`h-full ${doc.aiConfidenceScore >= 95 ? "bg-green-500" : "bg-amber-500"}`}
                               style={{ width: `${doc.aiConfidenceScore}%` }}
                             />
                           </div>
-                          <span className="text-sm text-gray-900">{doc.aiConfidenceScore}</span>
+                          <span className="text-sm text-gray-900">{doc.aiConfidenceScore}%</span>
+                          {doc.aiConfidenceScore < 95 && (
+                            <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded font-medium">
+                              Pending Review
+                            </span>
+                          )}
                         </div>
                       </td>
                       <td className="py-3 px-4 text-sm text-gray-600">{doc.lastUpdated}</td>

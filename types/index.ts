@@ -8,6 +8,8 @@ export type ShipmentStatus =
   | "vessel-arrival"
   | "completed"
 
+export type OpsType = "Bunkering" | "Discharge" | "Loading"
+
 export type CargoStatus = "L" | "T" // Local or Transshipment
 
 export type AlertType = "error" | "warning" | "info" | "success"
@@ -24,6 +26,7 @@ export interface Shipment {
   changeOfDestination: string | null
   status: ShipmentStatus
   createdOn: string
+  opsTypes: OpsType[]
   stages: {
     preSubmission: boolean
     portnetSubmission: boolean
