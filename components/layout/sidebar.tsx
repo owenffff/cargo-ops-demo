@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, Ship, FileText, Settings, LogOut, Mail } from "lucide-react"
+import { Home, Ship, FileText, Settings, LogOut, Mail, Package } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 
@@ -10,6 +10,7 @@ const navigation = [
   { name: "Home", href: "/", icon: Home },
   { name: "Emails", href: "/emails", icon: Mail },
   { name: "Shipments", href: "/shipments", icon: Ship },
+  { name: "Ground Plan", href: "/ground-plan", icon: Package },
   { name: "Documents", href: "/documents", icon: FileText },
 ]
 
