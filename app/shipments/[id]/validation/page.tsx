@@ -203,7 +203,9 @@ export default function ValidationPage() {
               <p className="text-sm text-gray-600 mb-2">
                 AI confidence score = {cargoAllocationPlan.aiConfidenceScore}%
               </p>
-              <ConfidenceBar score={cargoAllocationPlan.aiConfidenceScore} />
+              <div className="max-w-md">
+                <ConfidenceBar score={cargoAllocationPlan.aiConfidenceScore} />
+              </div>
             </div>
 
             <div className="mt-4 p-4 bg-gray-50 rounded-lg">
@@ -216,9 +218,19 @@ export default function ValidationPage() {
                   <p className="text-sm text-gray-600">Total Num of Units</p>
                   <p className="font-medium text-gray-900 text-center">{cargoAllocationPlan.totalUnits}</p>
                 </div>
-                <Button variant="outline" size="sm">
-                  View/Edit | Download | Delete
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="link" size="sm" className="text-blue-600 p-0 h-auto">
+                    View
+                  </Button>
+                  <span className="text-gray-300">|</span>
+                  <Button variant="link" size="sm" className="text-blue-600 p-0 h-auto">
+                    Edit
+                  </Button>
+                  <span className="text-gray-300">|</span>
+                  <Button variant="link" size="sm" className="text-red-600 p-0 h-auto">
+                    Delete
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

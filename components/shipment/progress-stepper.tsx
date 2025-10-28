@@ -79,7 +79,7 @@ export function ProgressStepper({ currentStatus, stages, shipmentId = "" }: Prog
               {/* Step indicator */}
               <Link
                 href={getStepRoute(step.id)}
-                className="flex flex-col items-center group cursor-pointer relative z-10"
+                className="flex flex-col items-center group cursor-pointer relative"
                 prefetch={true}
               >
                 <div

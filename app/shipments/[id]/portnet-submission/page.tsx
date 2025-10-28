@@ -2,24 +2,75 @@
 
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import type { Shipment } from "@/types"
+import type { Shipment, Document } from "@/types"
 import { LocalStorage } from "@/lib/storage"
+import { mockExtractDocument } from "@/lib/mock-extract"
+import { auditTrail } from "@/lib/audit-trail"
 import { ProgressStepper } from "@/components/shipment/progress-stepper"
+import { UploadModal } from "@/components/upload/upload-modal"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, FileText } from "lucide-react"
+import { ArrowLeft, FileText, Upload, Mail } from "lucide-react"
 import Link from "next/link"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Toast } from "@/components/ui/toast"
 
 export default function PortNetSubmissionPage() {
   const params = useParams()
   const router = useRouter()
   const [shipment, setShipment] = useState<Shipment | null>(null)
+  const [uploadModalOpen, setUploadModalOpen] = useState(false)
+  const [uploadType, setUploadType] = useState<"BL" | "BL_LIST" | "VIN_LIST" | "MANIFEST" | "PORTNET">("MANIFEST")
+  const [toast, setToast] = useState<{ show: boolean; variant: any; title: string; description: string }>({
+    show: false,
+    variant: "info",
+    title: "",
+    description: "",
+  })
 
   useEffect(() => {
     const shipments = LocalStorage.getShipments()
     const found = shipments.find((s) => s.id === params.id)
     if (found) setShipment(found)
   }, [params.id])
+
+  const handleUpload = (files: File[]) => {
+    if (!shipment) return
+
+    // Mock file processing
+    const newDocs: Document[] = files.map((file, index) => {
+      const extracted = mockExtractDocument(uploadType, file.name)
+
+      return {
+        id: `doc-${Date.now()}-${index}`,
+        shipmentId: shipment.id,
+        documentName: file.name.replace(/\.[^/.]+$/, ""),
+        documentType: uploadType,
+        aiConfidenceScore: extracted.confidence || 100,
+        lastUpdated: new Date().toLocaleString(),
+        numberOfUnits: extracted.numberOfUnits || Math.floor(Math.random() * 10) + 1,
+      }
+    })
+
+    // Get existing documents and add new ones
+    const existingDocs = LocalStorage.getDocuments(shipment.id)
+    const updatedDocs = [...existingDocs, ...newDocs]
+    LocalStorage.setDocuments(shipment.id, updatedDocs)
+
+    // Add audit entry
+    auditTrail.addEntry(
+      "Ryan",
+      "Ad-hoc Document Upload",
+      `Uploaded ${files.length} ${uploadType} document(s) for shipment ${shipment.id} in PortNet Submission stage`,
+    )
+
+    // Show success toast
+    showToast("success", "Upload Successful", `${files.length} document(s) uploaded successfully`)
+  }
+
+  const showToast = (variant: any, title: string, description: string) => {
+    setToast({ show: true, variant, title, description })
+    setTimeout(() => setToast({ show: false, variant: "info", title: "", description: "" }), 3000)
+  }
 
   if (!shipment) {
     return (
@@ -121,6 +172,13 @@ export default function PortNetSubmissionPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Toast */}
+      {toast.show && (
+        <div className="fixed top-20 right-6 z-50">
+          <Toast variant={toast.variant} title={toast.title} description={toast.description} />
+        </div>
+      )}
+
       {/* Breadcrumb */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -141,10 +199,20 @@ export default function PortNetSubmissionPage() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="mb-6">
+        <div className="mb-6 flex items-center justify-between">
           <Button variant="outline" onClick={() => router.push(`/shipments/${shipment.id}`)} className="gap-2">
             <ArrowLeft className="w-4 h-4" />
             Back to Shipment
+          </Button>
+          <Button
+            onClick={() => {
+              setUploadType("MANIFEST")
+              setUploadModalOpen(true)
+            }}
+            className="gap-2"
+          >
+            <Upload className="w-4 h-4" />
+            Upload Document
           </Button>
         </div>
 
@@ -405,7 +473,11 @@ export default function PortNetSubmissionPage() {
                   </div>
                 ))}
               </div>
-              <div className="mt-4 flex justify-end">
+              <div className="mt-4 flex justify-end gap-2">
+                <Button variant="outline" disabled className="gap-2 bg-gray-100 text-gray-500 cursor-not-allowed">
+                  <Mail className="w-4 h-4" />
+                  Draft Email
+                </Button>
                 <Button variant="outline" className="gap-2 bg-transparent">
                   <FileText className="w-4 h-4" />
                   Download Manifest File
@@ -466,6 +538,14 @@ export default function PortNetSubmissionPage() {
           </Button>
         </div>
       </div>
+
+      {/* Upload Modal */}
+      <UploadModal
+        isOpen={uploadModalOpen}
+        onClose={() => setUploadModalOpen(false)}
+        onUpload={handleUpload}
+        title="Upload Ad-hoc Document"
+      />
     </div>
   )
 }
