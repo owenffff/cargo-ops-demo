@@ -24,10 +24,24 @@ export default function HomePage() {
       LocalStorage.setShipments(mockShipments)
       storedShipments = mockShipments
     } else {
-      // Migrate old shipments to add opsTypes if missing
+      // Migrate old shipments to add opsTypes and berthConfirmation if missing
       const migratedShipments = storedShipments.map((shipment) => {
+        const updates: any = {}
+
         if (!shipment.opsTypes) {
-          return { ...shipment, opsTypes: ["Bunkering", "Discharge", "Loading"] }
+          updates.opsTypes = ["Bunkering", "Discharge", "Loading"]
+        }
+
+        // Add berthConfirmation stage if missing
+        if (shipment.stages && !('berthConfirmation' in shipment.stages)) {
+          updates.stages = {
+            berthConfirmation: true,
+            ...shipment.stages
+          }
+        }
+
+        if (Object.keys(updates).length > 0) {
+          return { ...shipment, ...updates }
         }
         return shipment
       })

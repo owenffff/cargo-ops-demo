@@ -21,7 +21,26 @@ export default function ShipmentDetailPage() {
     const found = shipments.find((s) => s.id === params.id)
 
     if (found) {
-      setShipment(found)
+      // Migrate shipment to add berthConfirmation if missing
+      if (found.stages && !('berthConfirmation' in found.stages)) {
+        const migratedShipment = {
+          ...found,
+          stages: {
+            berthConfirmation: true,
+            ...found.stages
+          }
+        }
+
+        // Update in localStorage
+        const updatedShipments = shipments.map(s =>
+          s.id === found.id ? migratedShipment : s
+        )
+        LocalStorage.setShipments(updatedShipments)
+
+        setShipment(migratedShipment)
+      } else {
+        setShipment(found)
+      }
     }
     setLoading(false)
   }, [params.id])
@@ -76,7 +95,13 @@ export default function ShipmentDetailPage() {
         {/* Action Buttons based on current stage */}
         <div className="mt-6">
           <h3 className="text-sm font-semibold text-gray-700 mb-3">Phase Navigation</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            <Button variant="outline" asChild className="w-full bg-transparent">
+              <Link href={`/shipments/${shipment.id}/berth-confirmation`}>
+                <FileText className="w-4 h-4 mr-2" />
+                Berth Confirmation
+              </Link>
+            </Button>
             <Button variant="outline" asChild className="w-full bg-transparent">
               <Link href={`/shipments/${shipment.id}/validation`}>
                 <FileText className="w-4 h-4 mr-2" />
@@ -133,6 +158,24 @@ function StageContent({ shipment }: { shipment: Shipment }) {
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6">
       <h2 className="text-lg font-semibold text-gray-900 mb-4">Current Stage Information</h2>
+
+      {shipment.status === "berth-confirmation" && (
+        <div>
+          <p className="text-gray-700 mb-4">
+            This shipment is in the berth confirmation stage. You need to confirm the berth allocation and vessel
+            details before proceeding to pre-submission.
+          </p>
+          <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-4">
+            <h3 className="font-semibold text-cyan-900 mb-2">Next Steps:</h3>
+            <ul className="list-disc list-inside text-sm text-cyan-800 space-y-1">
+              <li>Confirm berth allocation</li>
+              <li>Verify vessel arrival time</li>
+              <li>Validate terminal assignment</li>
+              <li>Approve berth booking</li>
+            </ul>
+          </div>
+        </div>
+      )}
 
       {shipment.status === "pre-submission" && (
         <div>

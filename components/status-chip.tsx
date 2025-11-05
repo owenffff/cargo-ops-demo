@@ -7,6 +7,7 @@ interface StatusChipProps {
     | "pending"
     | "rejected"
     | "in-progress"
+    | "berth-confirmation"
     | "pre-submission"
     | "portnet-submission"
     | "pre-arrival-validation"
@@ -41,6 +42,12 @@ export function StatusChip({ status, label, size = "md" }: StatusChipProps) {
       text: "text-blue-700",
       icon: Clock,
       defaultLabel: "In Progress",
+    },
+    "berth-confirmation": {
+      bg: "bg-cyan-100",
+      text: "text-cyan-700",
+      icon: Anchor,
+      defaultLabel: "Berth Confirmation",
     },
     "pre-submission": {
       bg: "bg-blue-100",

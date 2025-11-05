@@ -8,6 +8,7 @@ import { mockDocuments, mockBillsOfLading, mockCargoAllocationPlan } from "@/lib
 import { mockExtractDocument } from "@/lib/mock-extract"
 import { auditTrail } from "@/lib/audit-trail"
 import { ProgressStepper } from "@/components/shipment/progress-stepper"
+import { ShipmentDetailsCard } from "@/components/shipment/shipment-details-card"
 import { UploadModal } from "@/components/upload/upload-modal"
 import { ConfidenceBar } from "@/components/confidence-bar"
 import { Button } from "@/components/ui/button"
@@ -189,7 +190,10 @@ export default function ValidationPage() {
           </Button>
         </div>
 
+        <ShipmentDetailsCard shipment={shipment} />
+
         {/* Cargo Allocation Plan */}
+        <div className="mt-6">
         {cargoAllocationPlan && (
           <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
@@ -389,6 +393,7 @@ export default function ValidationPage() {
               Next
             </Button>
           </div>
+        </div>
         </div>
       </div>
 

@@ -28,6 +28,9 @@ export function ShipmentsTable({ shipments }: ShipmentsTableProps) {
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">ETA</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Ops Type</th>
               <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
+                Berth Confirmation
+              </th>
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                 Pre-Submission
               </th>
               <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
@@ -61,6 +64,9 @@ export function ShipmentsTable({ shipments }: ShipmentsTableProps) {
                       <OpsTypeBadge key={opsType} opsType={opsType} />
                     ))}
                   </div>
+                </td>
+                <td className="px-4 py-4 text-center">
+                  <StageIndicator completed={shipment.stages.berthConfirmation} />
                 </td>
                 <td className="px-4 py-4 text-center">
                   <StageIndicator completed={shipment.stages.preSubmission} />

@@ -24,6 +24,7 @@ export const mockShipments: Shipment[] = [
     createdOn: "22 Aug 2025",
     opsTypes: ["Bunkering", "Discharge", "Loading"],
     stages: {
+      berthConfirmation: true,
       preSubmission: true,
       portnetSubmission: false,
       preArrivalValidation: false,
@@ -43,6 +44,7 @@ export const mockShipments: Shipment[] = [
     createdOn: "25 Aug 2025",
     opsTypes: ["Bunkering", "Discharge", "Loading"],
     stages: {
+      berthConfirmation: true,
       preSubmission: true,
       portnetSubmission: true,
       preArrivalValidation: false,
@@ -62,6 +64,7 @@ export const mockShipments: Shipment[] = [
     createdOn: "27 Aug 2025",
     opsTypes: ["Bunkering", "Discharge", "Loading"],
     stages: {
+      berthConfirmation: true,
       preSubmission: true,
       portnetSubmission: true,
       preArrivalValidation: true,
@@ -81,6 +84,7 @@ export const mockShipments: Shipment[] = [
     createdOn: "15 Aug 2025",
     opsTypes: ["Bunkering", "Discharge", "Loading"],
     stages: {
+      berthConfirmation: true,
       preSubmission: true,
       portnetSubmission: true,
       preArrivalValidation: true,

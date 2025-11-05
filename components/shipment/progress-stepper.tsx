@@ -15,6 +15,7 @@ interface Step {
 interface ProgressStepperProps {
   currentStatus: ShipmentStatus
   stages: {
+    berthConfirmation: boolean
     preSubmission: boolean
     portnetSubmission: boolean
     preArrivalValidation: boolean
@@ -27,6 +28,7 @@ interface ProgressStepperProps {
 export function ProgressStepper({ currentStatus, stages, shipmentId = "" }: ProgressStepperProps) {
   const getStepRoute = (stepId: ShipmentStatus): string => {
     const routes: Record<ShipmentStatus, string> = {
+      "berth-confirmation": `/shipments/${shipmentId}/berth-confirmation`,
       "pre-submission": `/shipments/${shipmentId}/validation`,
       "portnet-submission": `/shipments/${shipmentId}/portnet-submission`,
       "pre-arrival-validation": `/shipments/${shipmentId}/pre-arrival`,
@@ -38,6 +40,12 @@ export function ProgressStepper({ currentStatus, stages, shipmentId = "" }: Prog
   }
 
   const steps: Step[] = [
+    {
+      id: "berth-confirmation",
+      label: "Berth Confirmation",
+      completed: stages.berthConfirmation,
+      active: currentStatus === "berth-confirmation",
+    },
     {
       id: "pre-submission",
       label: "Pre-submission",

@@ -7,6 +7,7 @@ import { LocalStorage } from "@/lib/storage"
 import { mockExtractDocument } from "@/lib/mock-extract"
 import { auditTrail } from "@/lib/audit-trail"
 import { ProgressStepper } from "@/components/shipment/progress-stepper"
+import { ShipmentDetailsCard } from "@/components/shipment/shipment-details-card"
 import { UploadModal } from "@/components/upload/upload-modal"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, FileText, Upload, Mail } from "lucide-react"
@@ -216,8 +217,10 @@ export default function PortNetSubmissionPage() {
           </Button>
         </div>
 
+        <ShipmentDetailsCard shipment={shipment} />
+
         {/* Header */}
-        <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg p-4 mb-6 flex items-start gap-3">
+        <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg p-4 mt-6 mb-6 flex items-start gap-3">
           <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold">
             2
           </div>

@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import type { Shipment } from "@/types"
 import { LocalStorage } from "@/lib/storage"
 import { ProgressStepper } from "@/components/shipment/progress-stepper"
+import { ShipmentDetailsCard } from "@/components/shipment/shipment-details-card"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, AlertTriangle, CheckCircle, FileText, Download } from "lucide-react"
 import { StatusChip } from "@/components/status-chip"
@@ -105,8 +106,10 @@ export default function PreArrivalValidationPage() {
           </Button>
         </div>
 
+        <ShipmentDetailsCard shipment={shipment} />
+
         {/* Header */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-6 mt-6 mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">

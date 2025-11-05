@@ -13,7 +13,7 @@ export function ShipmentsStats({ shipments }: ShipmentsStatsProps) {
   const inProgress = totalShipments - completed
   const needsAttention = shipments.filter((s) => {
     // Check if any stage has low confidence or issues
-    return s.status === "pre-submission" || s.status === "pre-arrival-validation"
+    return s.status === "berth-confirmation" || s.status === "pre-submission" || s.status === "pre-arrival-validation"
   }).length
 
   const stats = [

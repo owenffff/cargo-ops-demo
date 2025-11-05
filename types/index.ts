@@ -1,6 +1,7 @@
 // Core domain types for the cargo operations system
 
 export type ShipmentStatus =
+  | "berth-confirmation"
   | "pre-submission"
   | "portnet-submission"
   | "pre-arrival-validation"
@@ -28,6 +29,7 @@ export interface Shipment {
   createdOn: string
   opsTypes: OpsType[]
   stages: {
+    berthConfirmation: boolean
     preSubmission: boolean
     portnetSubmission: boolean
     preArrivalValidation: boolean

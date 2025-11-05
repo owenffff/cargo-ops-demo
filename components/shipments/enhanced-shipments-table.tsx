@@ -20,6 +20,7 @@ export function EnhancedShipmentsTable({ shipments }: EnhancedShipmentsTableProp
     }
 
     const stages = [
+      shipment.stages.berthConfirmation,
       shipment.stages.preSubmission,
       shipment.stages.portnetSubmission,
       shipment.stages.preArrivalValidation,
