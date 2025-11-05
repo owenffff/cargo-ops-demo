@@ -5,15 +5,15 @@ import { useParams, useRouter } from "next/navigation"
 import type { Shipment, Document, BillOfLading } from "@/types"
 import { LocalStorage } from "@/lib/storage"
 import { mockDocuments, mockBillsOfLading, mockCargoAllocationPlan } from "@/lib/mock-data"
-import { mockExtractDocument } from "@/lib/mock-extract"
+import { mockExtractDocument, generateExtractedBLFields } from "@/lib/mock-extract"
 import { auditTrail } from "@/lib/audit-trail"
 import { ProgressStepper } from "@/components/shipment/progress-stepper"
 import { ShipmentDetailsCard } from "@/components/shipment/shipment-details-card"
 import { UploadModal } from "@/components/upload/upload-modal"
 import { ConfidenceBar } from "@/components/confidence-bar"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Upload, CheckCircle, AlertCircle } from "lucide-react"
-import { Toast } from "@/components/ui/toast"
+import { ArrowLeft, Upload, CheckCircle, AlertCircle, Loader2, Trash2 } from "lucide-react"
+import { toast } from "sonner"
 
 export default function ValidationPage() {
   const params = useParams()
@@ -25,12 +25,7 @@ export default function ValidationPage() {
   const [uploadModalOpen, setUploadModalOpen] = useState(false)
   const [uploadType, setUploadType] = useState<"BL" | "BL_LIST" | "VIN_LIST">("BL")
   const [validationStatus, setValidationStatus] = useState<"pending" | "mismatch" | "match">("pending")
-  const [toast, setToast] = useState<{ show: boolean; variant: any; title: string; description: string }>({
-    show: false,
-    variant: "info",
-    title: "",
-    description: "",
-  })
+  const [processingDocId, setProcessingDocId] = useState<string | null>(null)
 
   useEffect(() => {
     const shipments = LocalStorage.getShipments()
@@ -76,23 +71,32 @@ export default function ValidationPage() {
     }
   }
 
-  const handleUpload = (files: File[]) => {
+  const handleUpload = async (files: File[]) => {
     if (!shipment) return
 
-    // Mock file processing
-    const newDocs: Document[] = files.map((file, index) => {
-      const extracted = mockExtractDocument(uploadType, file.name)
+    // Convert files to base64 and create document entries with "uploaded" status
+    const newDocs: Document[] = await Promise.all(
+      files.map(async (file, index) => {
+        // Convert file to base64
+        const reader = new FileReader()
+        const fileData = await new Promise<string>((resolve) => {
+          reader.onload = () => resolve(reader.result as string)
+          reader.readAsDataURL(file)
+        })
 
-      return {
-        id: `doc-${Date.now()}-${index}`,
-        shipmentId: shipment.id,
-        documentName: file.name.replace(/\.[^/.]+$/, ""),
-        documentType: uploadType,
-        aiConfidenceScore: extracted.confidence || 100,
-        lastUpdated: new Date().toLocaleString(),
-        numberOfUnits: extracted.numberOfUnits || Math.floor(Math.random() * 10) + 1,
-      }
-    })
+        return {
+          id: `doc-${Date.now()}-${index}`,
+          shipmentId: shipment.id,
+          documentName: file.name.replace(/\.[^/.]+$/, ""),
+          documentType: uploadType,
+          aiConfidenceScore: 0, // Not yet processed
+          lastUpdated: new Date().toLocaleString(),
+          numberOfUnits: 0,
+          processingStatus: "uploaded" as const,
+          fileData,
+        }
+      }),
+    )
 
     const updatedDocs = [...documents, ...newDocs]
     setDocuments(updatedDocs)
@@ -105,11 +109,74 @@ export default function ValidationPage() {
       `Uploaded ${files.length} ${uploadType} document(s) for shipment ${shipment.id}`,
     )
 
+    // Show success toast
+    toast.success(`${files.length} document(s) uploaded successfully`)
+  }
+
+  const handleStartAIProcessing = async (docId: string) => {
+    if (!shipment) return
+
+    setProcessingDocId(docId)
+
+    // Update status to "processing"
+    LocalStorage.updateDocument(shipment.id, docId, { processingStatus: "processing" })
+    const updatedDocs = documents.map((doc) =>
+      doc.id === docId ? { ...doc, processingStatus: "processing" as const } : doc,
+    )
+    setDocuments(updatedDocs)
+
+    // Add audit entry
+    auditTrail.addEntry("Ryan", "AI Processing Started", `Started AI processing for document ${docId}`)
+
+    // Simulate 5 second AI processing
+    await new Promise((resolve) => setTimeout(resolve, 5000))
+
+    // Generate extracted fields
+    const extractedFields = generateExtractedBLFields(docId, shipment.id)
+    const avgConfidence = Math.round(
+      Object.values(extractedFields).reduce((sum, field) => sum + field.confidence, 0) /
+        Object.values(extractedFields).length,
+    )
+
+    // Update document with extracted fields and "ready" status
+    const processedDoc = {
+      processingStatus: "ready" as const,
+      extractedFields,
+      aiConfidenceScore: avgConfidence,
+      numberOfUnits: parseInt(extractedFields.numberOfUnits.value) || 0,
+      lastUpdated: new Date().toLocaleString(),
+    }
+
+    LocalStorage.updateDocument(shipment.id, docId, processedDoc)
+    const finalDocs = documents.map((doc) => (doc.id === docId ? { ...doc, ...processedDoc } : doc))
+    setDocuments(finalDocs)
+    setProcessingDocId(null)
+
+    // Add audit entry
+    auditTrail.addEntry("Ryan", "AI Processing Complete", `Completed AI processing for document ${docId}`)
+
+    // Check validation
+    checkValidationStatus(finalDocs, cargoAllocationPlan)
+
+    toast.success("AI processing completed", { description: `Document ready for review (${avgConfidence}% confidence)` })
+  }
+
+  const handleDeleteDocument = (docId: string) => {
+    if (!shipment) return
+
+    if (!confirm("Are you sure you want to delete this document?")) return
+
+    LocalStorage.deleteDocument(shipment.id, docId)
+    const updatedDocs = documents.filter((doc) => doc.id !== docId)
+    setDocuments(updatedDocs)
+
+    // Add audit entry
+    auditTrail.addEntry("Ryan", "Document Deleted", `Deleted document ${docId} from shipment ${shipment.id}`)
+
     // Check validation
     checkValidationStatus(updatedDocs, cargoAllocationPlan)
 
-    // Show success toast
-    showToast("success", "Upload Successful", `${files.length} document(s) uploaded successfully`)
+    toast.success("Document deleted successfully")
   }
 
   const handleMarkReady = () => {
@@ -131,16 +198,11 @@ export default function ValidationPage() {
     // Add audit entry
     auditTrail.addEntry("Ryan", "Validation Complete", `Marked shipment ${shipment.id} ready for PortNet submission`)
 
-    showToast("success", "Validation Complete", "Shipment marked ready for PortNet submission")
+    toast.success("Validation Complete", { description: "Shipment marked ready for PortNet submission" })
 
     setTimeout(() => {
       router.push(`/shipments/${shipment.id}`)
     }, 1500)
-  }
-
-  const showToast = (variant: any, title: string, description: string) => {
-    setToast({ show: true, variant, title, description })
-    setTimeout(() => setToast({ show: false, variant: "info", title: "", description: "" }), 3000)
   }
 
   if (!shipment) {
@@ -151,17 +213,13 @@ export default function ValidationPage() {
     )
   }
 
-  const totalBLUnits = documents.reduce((sum, doc) => sum + (doc.numberOfUnits || 0), 0)
-  const lowConfidenceDocs = documents.filter((doc) => doc.aiConfidenceScore < 95)
+  const totalBLUnits = documents
+    .filter((doc) => doc.processingStatus === "ready")
+    .reduce((sum, doc) => sum + (doc.numberOfUnits || 0), 0)
+  const lowConfidenceDocs = documents.filter((doc) => doc.aiConfidenceScore < 95 && doc.processingStatus === "ready")
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Toast */}
-      {toast.show && (
-        <div className="fixed top-20 right-6 z-50">
-          <Toast variant={toast.variant} title={toast.title} description={toast.description} />
-        </div>
-      )}
 
       {/* Breadcrumb */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
@@ -282,6 +340,7 @@ export default function ValidationPage() {
               <thead>
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">Document Name</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">Processing Status</th>
                   <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">AI Confidence Score</th>
                   <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">Last Updated</th>
                   <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">Actions</th>
@@ -290,43 +349,108 @@ export default function ValidationPage() {
               <tbody>
                 {documents
                   .filter((doc) => doc.documentType === "BL")
-                  .map((doc) => (
-                    <tr key={doc.id} className="border-b border-gray-100">
-                      <td className="py-3 px-4 text-sm text-gray-900">{doc.documentName}</td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden max-w-[100px]">
-                            <div
-                              className={`h-full ${doc.aiConfidenceScore >= 95 ? "bg-green-500" : "bg-amber-500"}`}
-                              style={{ width: `${doc.aiConfidenceScore}%` }}
-                            />
-                          </div>
-                          <span className="text-sm text-gray-900">{doc.aiConfidenceScore}%</span>
-                          {doc.aiConfidenceScore < 95 && (
-                            <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded font-medium">
-                              Pending Review
+                  .map((doc) => {
+                    const status = doc.processingStatus || "ready"
+                    const isProcessing = processingDocId === doc.id
+
+                    return (
+                      <tr key={doc.id} className="border-b border-gray-100">
+                        <td className="py-3 px-4 text-sm text-gray-900">{doc.documentName}</td>
+                        <td className="py-3 px-4">
+                          {status === "uploaded" && (
+                            <Button
+                              size="sm"
+                              onClick={() => handleStartAIProcessing(doc.id)}
+                              disabled={isProcessing}
+                              className="gap-2"
+                            >
+                              {isProcessing ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                  Processing...
+                                </>
+                              ) : (
+                                "Start AI Processing"
+                              )}
+                            </Button>
+                          )}
+                          {status === "processing" && (
+                            <span className="flex items-center gap-2 text-sm text-blue-600">
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Processing...
                             </span>
                           )}
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-sm text-gray-600">{doc.lastUpdated}</td>
-                      <td className="py-3 px-4">
-                        <div className="flex gap-2">
-                          <Button variant="link" size="sm" className="text-blue-600 p-0 h-auto">
-                            View
-                          </Button>
-                          <span className="text-gray-300">|</span>
-                          <Button variant="link" size="sm" className="text-blue-600 p-0 h-auto">
-                            Edit
-                          </Button>
-                          <span className="text-gray-300">|</span>
-                          <Button variant="link" size="sm" className="text-red-600 p-0 h-auto">
-                            Delete
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                          {status === "ready" && (
+                            <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded font-medium">
+                              Ready for Review
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4">
+                          {status === "ready" ? (
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden max-w-[100px]">
+                                <div
+                                  className={`h-full ${doc.aiConfidenceScore >= 95 ? "bg-green-500" : "bg-amber-500"}`}
+                                  style={{ width: `${doc.aiConfidenceScore}%` }}
+                                />
+                              </div>
+                              <span className="text-sm text-gray-900">{doc.aiConfidenceScore}%</span>
+                              {doc.aiConfidenceScore < 95 && (
+                                <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded font-medium">
+                                  Pending Review
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-sm text-gray-400">-</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-sm text-gray-600">{doc.lastUpdated}</td>
+                        <td className="py-3 px-4">
+                          {status === "ready" ? (
+                            <div className="flex gap-2">
+                              <Button
+                                variant="link"
+                                size="sm"
+                                className="text-blue-600 p-0 h-auto"
+                                onClick={() => router.push(`/shipments/${shipment.id}/documents/${doc.id}?mode=view`)}
+                              >
+                                View
+                              </Button>
+                              <span className="text-gray-300">|</span>
+                              <Button
+                                variant="link"
+                                size="sm"
+                                className="text-blue-600 p-0 h-auto"
+                                onClick={() => router.push(`/shipments/${shipment.id}/documents/${doc.id}?mode=edit`)}
+                              >
+                                Edit
+                              </Button>
+                              <span className="text-gray-300">|</span>
+                              <Button
+                                variant="link"
+                                size="sm"
+                                className="text-red-600 p-0 h-auto"
+                                onClick={() => handleDeleteDocument(doc.id)}
+                              >
+                                Delete
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button
+                              variant="link"
+                              size="sm"
+                              className="text-red-600 p-0 h-auto"
+                              onClick={() => handleDeleteDocument(doc.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
               </tbody>
             </table>
           </div>

@@ -38,6 +38,63 @@ export interface Shipment {
   }
 }
 
+export type DocumentProcessingStatus = "uploaded" | "processing" | "ready" | "error"
+
+export type DocumentReviewStatusType = "pending_review" | "in_review" | "approved" | "rejected"
+
+export interface DocumentReviewStatus {
+  status: DocumentReviewStatusType
+  reviewer?: string
+  reviewedAt?: string
+  reviewNotes?: string
+  fieldsModified: number
+  fieldsFlagged: number
+}
+
+export interface FieldComment {
+  id: string
+  user: string
+  comment: string
+  timestamp: string
+}
+
+export interface ExtractedBLField {
+  label: string
+  value: string
+  originalValue: string // AI-extracted value (never changes)
+  confidence: number
+  editable: boolean
+  isModified: boolean // true if value !== originalValue
+  isFlagged: boolean // flagged for review
+  comments: FieldComment[] // field-level comments
+  modifiedBy?: string
+  modifiedAt?: string
+}
+
+export interface ExtractedBLFields {
+  blNumber: ExtractedBLField
+  date: ExtractedBLField
+  vesselName: ExtractedBLField
+  voyageNumber: ExtractedBLField
+  shipperName: ExtractedBLField
+  shipperAddress: ExtractedBLField
+  shipperContact: ExtractedBLField
+  consigneeName: ExtractedBLField
+  consigneeAddress: ExtractedBLField
+  consigneeContact: ExtractedBLField
+  notifyParty: ExtractedBLField
+  portOfLoading: ExtractedBLField
+  portOfDischarge: ExtractedBLField
+  placeOfDelivery: ExtractedBLField
+  numberOfUnits: ExtractedBLField
+  weight: ExtractedBLField
+  volume: ExtractedBLField
+  containerNumbers: ExtractedBLField
+  cargoDescription: ExtractedBLField
+  freightTerms: ExtractedBLField
+  specialInstructions: ExtractedBLField
+}
+
 export interface Document {
   id: string
   shipmentId: string
@@ -47,6 +104,11 @@ export interface Document {
   lastUpdated: string
   numberOfUnits?: number
   fileUrl?: string
+  processingStatus?: DocumentProcessingStatus
+  extractedFields?: ExtractedBLFields
+  fileData?: string // base64 encoded file data
+  reviewStatus?: DocumentReviewStatus
+  locked?: boolean // locked from edits after approval
 }
 
 export interface BillOfLading extends Document {

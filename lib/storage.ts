@@ -41,6 +41,26 @@ export class LocalStorage {
     localStorage.setItem(`${STORAGE_KEYS.DOCUMENTS}-${shipmentId}`, JSON.stringify(documents))
   }
 
+  static getDocument(shipmentId: string, documentId: string): Document | null {
+    if (typeof window === "undefined") return null
+    const documents = this.getDocuments(shipmentId)
+    return documents.find((doc) => doc.id === documentId) || null
+  }
+
+  static deleteDocument(shipmentId: string, documentId: string): void {
+    if (typeof window === "undefined") return
+    const documents = this.getDocuments(shipmentId)
+    const filtered = documents.filter((doc) => doc.id !== documentId)
+    this.setDocuments(shipmentId, filtered)
+  }
+
+  static updateDocument(shipmentId: string, documentId: string, updates: Partial<Document>): void {
+    if (typeof window === "undefined") return
+    const documents = this.getDocuments(shipmentId)
+    const updated = documents.map((doc) => (doc.id === documentId ? { ...doc, ...updates } : doc))
+    this.setDocuments(shipmentId, updated)
+  }
+
   static getCurrentUser(): { name: string; role: string } {
     if (typeof window === "undefined") return { name: "Ryan", role: "Admin" }
     const data = localStorage.getItem(STORAGE_KEYS.USER)
