@@ -74,7 +74,7 @@ export default function ValidationPage() {
   const handleUpload = async (files: File[]) => {
     if (!shipment) return
 
-    // Convert files to base64 and create document entries with "uploaded" status
+    // Convert files to base64 and create document entries with "processing" status
     const newDocs: Document[] = await Promise.all(
       files.map(async (file, index) => {
         // Convert file to base64
@@ -92,7 +92,7 @@ export default function ValidationPage() {
           aiConfidenceScore: 0, // Not yet processed
           lastUpdated: new Date().toLocaleString(),
           numberOfUnits: 0,
-          processingStatus: "uploaded" as const,
+          processingStatus: "processing" as const,
           fileData,
         }
       }),
@@ -110,7 +110,55 @@ export default function ValidationPage() {
     )
 
     // Show success toast
-    toast.success(`${files.length} document(s) uploaded successfully`)
+    toast.success(`${files.length} document(s) uploaded successfully`, {
+      description: "AI processing started automatically..."
+    })
+
+    // Automatically start AI processing for each uploaded document
+    for (const newDoc of newDocs) {
+      await processDocumentAutomatically(newDoc.id, updatedDocs)
+    }
+  }
+
+  const processDocumentAutomatically = async (docId: string, currentDocs: Document[]) => {
+    if (!shipment) return
+
+    // Add audit entry
+    auditTrail.addEntry("Ryan", "AI Processing Started", `Started AI processing for document ${docId}`)
+
+    // Simulate 5 second AI processing
+    await new Promise((resolve) => setTimeout(resolve, 5000))
+
+    // Generate extracted fields
+    const extractedFields = generateExtractedBLFields(docId, shipment.id)
+    const avgConfidence = Math.round(
+      Object.values(extractedFields).reduce((sum, field) => sum + field.confidence, 0) /
+        Object.values(extractedFields).length,
+    )
+
+    // Update document with extracted fields and "ready" status
+    const processedDoc = {
+      processingStatus: "ready" as const,
+      extractedFields,
+      aiConfidenceScore: avgConfidence,
+      numberOfUnits: parseInt(extractedFields.numberOfPackages.value.replace(/[^0-9]/g, "")) || 0,
+      lastUpdated: new Date().toLocaleString(),
+    }
+
+    LocalStorage.updateDocument(shipment.id, docId, processedDoc)
+
+    // Update local state
+    setDocuments(prevDocs => {
+      const finalDocs = prevDocs.map((doc) => (doc.id === docId ? { ...doc, ...processedDoc } : doc))
+      // Check validation
+      checkValidationStatus(finalDocs, cargoAllocationPlan)
+      return finalDocs
+    })
+
+    // Add audit entry
+    auditTrail.addEntry("Ryan", "AI Processing Complete", `Completed AI processing for document ${docId}`)
+
+    toast.success("AI processing completed", { description: `Document ready for review (${avgConfidence}% confidence)` })
   }
 
   const handleStartAIProcessing = async (docId: string) => {
@@ -323,18 +371,6 @@ export default function ValidationPage() {
             </div>
           </div>
 
-          {lowConfidenceDocs.length > 0 && (
-            <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-semibold text-amber-900">Pending Review</p>
-                <p className="text-sm text-amber-800">
-                  {lowConfidenceDocs.length} document(s) have confidence scores below 95%. Please review and verify before proceeding.
-                </p>
-              </div>
-            </div>
-          )}
-
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -342,6 +378,7 @@ export default function ValidationPage() {
                   <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">Document Name</th>
                   <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">Processing Status</th>
                   <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">AI Confidence Score</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">Number of Units</th>
                   <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">Last Updated</th>
                   <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">Actions</th>
                 </tr>
@@ -396,16 +433,12 @@ export default function ValidationPage() {
                                 />
                               </div>
                               <span className="text-sm text-gray-900">{doc.aiConfidenceScore}%</span>
-                              {doc.aiConfidenceScore < 95 && (
-                                <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded font-medium">
-                                  Pending Review
-                                </span>
-                              )}
                             </div>
                           ) : (
                             <span className="text-sm text-gray-400">-</span>
                           )}
                         </td>
+                        <td className="py-3 px-4 text-sm text-gray-900">{doc.numberOfUnits || 5}</td>
                         <td className="py-3 px-4 text-sm text-gray-600">{doc.lastUpdated}</td>
                         <td className="py-3 px-4">
                           {status === "ready" ? (

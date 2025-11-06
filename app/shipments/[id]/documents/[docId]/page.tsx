@@ -9,7 +9,7 @@ import { PDFViewer } from "@/components/documents/pdf-viewer"
 import { ExtractedFieldsTable } from "@/components/documents/extracted-fields-table"
 import { DocumentApprovalPanel } from "@/components/documents/document-approval-panel"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Edit, Eye, Lock, Unlock } from "lucide-react"
+import { ArrowLeft, Edit, Eye } from "lucide-react"
 import { toast } from "sonner"
 
 export default function DocumentViewerPage() {
@@ -31,22 +31,12 @@ export default function DocumentViewerPage() {
       // Load document
       const doc = LocalStorage.getDocument(found.id, params.docId as string)
       if (doc) {
-        // Initialize reviewStatus if not present
-        if (!doc.reviewStatus) {
-          doc.reviewStatus = {
-            status: "pending_review",
-            fieldsModified: 0,
-            fieldsFlagged: 0,
-          }
-        }
         setDocument(doc)
 
-        // Set mode from query param (if not locked)
+        // Set mode from query param
         const queryMode = searchParams.get("mode")
-        if (!doc.locked && (queryMode === "edit" || queryMode === "view")) {
+        if (queryMode === "edit" || queryMode === "view") {
           setMode(queryMode)
-        } else if (doc.locked) {
-          setMode("view")
         }
       }
     }
@@ -58,26 +48,15 @@ export default function DocumentViewerPage() {
 
     // Calculate stats
     const allFields = Object.values(updatedFields)
-    const fieldsModified = allFields.filter((f: any) => f.isModified).length
-    const fieldsFlagged = allFields.filter((f: any) => f.isFlagged).length
     const avgConfidence = Math.round(
       allFields.reduce((sum: number, field: any) => sum + field.confidence, 0) / allFields.length,
     )
-
-    // Update review status
-    const updatedReviewStatus = {
-      ...document.reviewStatus,
-      status: document.reviewStatus?.status || ("in_review" as const),
-      fieldsModified,
-      fieldsFlagged,
-    }
 
     // Update document
     LocalStorage.updateDocument(shipment.id, document.id, {
       extractedFields: updatedFields,
       aiConfidenceScore: avgConfidence,
       lastUpdated: new Date().toLocaleString(),
-      reviewStatus: updatedReviewStatus,
     })
 
     // Update local state
@@ -86,7 +65,6 @@ export default function DocumentViewerPage() {
       extractedFields: updatedFields,
       aiConfidenceScore: avgConfidence,
       lastUpdated: new Date().toLocaleString(),
-      reviewStatus: updatedReviewStatus,
     }
     setDocument(updatedDoc)
 
@@ -98,107 +76,7 @@ export default function DocumentViewerPage() {
     )
   }
 
-  const handleApprove = (notes: string) => {
-    if (!shipment || !document) return
-
-    const reviewStatus = {
-      status: "approved" as const,
-      reviewer: "Ryan",
-      reviewedAt: new Date().toISOString(),
-      reviewNotes: notes,
-      fieldsModified: document.reviewStatus?.fieldsModified || 0,
-      fieldsFlagged: document.reviewStatus?.fieldsFlagged || 0,
-    }
-
-    LocalStorage.updateDocument(shipment.id, document.id, {
-      reviewStatus,
-      locked: true,
-    })
-
-    setDocument({
-      ...document,
-      reviewStatus,
-      locked: true,
-    })
-    setMode("view")
-
-    auditTrail.addEntry("Ryan", "Document Approved", `Approved document ${document.id}: ${notes}`)
-    toast.success("Document approved successfully")
-  }
-
-  const handleReject = (notes: string) => {
-    if (!shipment || !document) return
-
-    const reviewStatus = {
-      status: "rejected" as const,
-      reviewer: "Ryan",
-      reviewedAt: new Date().toISOString(),
-      reviewNotes: notes,
-      fieldsModified: document.reviewStatus?.fieldsModified || 0,
-      fieldsFlagged: document.reviewStatus?.fieldsFlagged || 0,
-    }
-
-    LocalStorage.updateDocument(shipment.id, document.id, {
-      reviewStatus,
-    })
-
-    setDocument({
-      ...document,
-      reviewStatus,
-    })
-
-    auditTrail.addEntry("Ryan", "Document Rejected", `Rejected document ${document.id}: ${notes}`)
-    toast.error("Document rejected")
-  }
-
-  const handleRequestChanges = (notes: string) => {
-    if (!shipment || !document) return
-
-    const reviewStatus = {
-      status: "in_review" as const,
-      reviewer: "Ryan",
-      reviewedAt: new Date().toISOString(),
-      reviewNotes: notes,
-      fieldsModified: document.reviewStatus?.fieldsModified || 0,
-      fieldsFlagged: document.reviewStatus?.fieldsFlagged || 0,
-    }
-
-    LocalStorage.updateDocument(shipment.id, document.id, {
-      reviewStatus,
-    })
-
-    setDocument({
-      ...document,
-      reviewStatus,
-    })
-
-    auditTrail.addEntry("Ryan", "Changes Requested", `Requested changes for document ${document.id}: ${notes}`)
-    toast.info("Changes requested")
-  }
-
-  const handleUnlock = () => {
-    if (!shipment || !document) return
-
-    if (!confirm("Are you sure you want to unlock this document? This will allow further edits.")) return
-
-    LocalStorage.updateDocument(shipment.id, document.id, {
-      locked: false,
-    })
-
-    setDocument({
-      ...document,
-      locked: false,
-    })
-
-    auditTrail.addEntry("Ryan", "Document Unlocked", `Unlocked document ${document.id} for editing`)
-    toast.success("Document unlocked")
-  }
-
   const toggleMode = () => {
-    if (document?.locked) {
-      toast.error("Document is locked. Unlock it first to edit.")
-      return
-    }
     const newMode = mode === "view" ? "edit" : "view"
     setMode(newMode)
     router.replace(`/shipments/${params.id}/documents/${params.docId}?mode=${newMode}`)
@@ -263,7 +141,6 @@ export default function DocumentViewerPage() {
             </div>
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold text-gray-900">{document.documentName}</h1>
-              {document.locked && <Lock className="w-5 h-5 text-gray-500" />}
             </div>
             <p className="text-sm text-gray-600 mt-1">
               {document.documentType} • AI Confidence: {document.aiConfidenceScore}%
@@ -271,27 +148,19 @@ export default function DocumentViewerPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            {document.locked && (
-              <Button variant="outline" onClick={handleUnlock} className="gap-2">
-                <Unlock className="w-4 h-4" />
-                Unlock
-              </Button>
-            )}
-            {!document.locked && (
-              <Button variant="outline" onClick={toggleMode} className="gap-2">
-                {mode === "view" ? (
-                  <>
-                    <Edit className="w-4 h-4" />
-                    Edit Mode
-                  </>
-                ) : (
-                  <>
-                    <Eye className="w-4 h-4" />
-                    View Mode
-                  </>
-                )}
-              </Button>
-            )}
+            <Button variant="outline" onClick={toggleMode} className="gap-2">
+              {mode === "view" ? (
+                <>
+                  <Edit className="w-4 h-4" />
+                  Edit Mode
+                </>
+              ) : (
+                <>
+                  <Eye className="w-4 h-4" />
+                  View Mode
+                </>
+              )}
+            </Button>
             <Button variant="outline" onClick={() => router.push(`/shipments/${shipment.id}/validation`)} className="gap-2">
               <ArrowLeft className="w-4 h-4" />
               Back to Validation
@@ -313,23 +182,14 @@ export default function DocumentViewerPage() {
             <ExtractedFieldsTable
               fields={document.extractedFields}
               mode={mode}
-              locked={document.locked}
               onSave={handleSave}
             />
           </div>
         </div>
       </div>
 
-      {/* Approval Panel at Bottom */}
-      <DocumentApprovalPanel
-        reviewStatus={document.reviewStatus}
-        extractedFields={document.extractedFields}
-        locked={document.locked}
-        onApprove={handleApprove}
-        onReject={handleReject}
-        onRequestChanges={handleRequestChanges}
-        onUnlock={handleUnlock}
-      />
+      {/* Statistics Panel at Bottom */}
+      <DocumentApprovalPanel extractedFields={document.extractedFields} />
 
       {/* Audit Log Section */}
       <div className="bg-gray-50 border-t border-gray-200 p-6">

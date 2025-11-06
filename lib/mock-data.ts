@@ -78,7 +78,7 @@ export const mockShipments: Shipment[] = [
     transactionStartTime: "15th Aug 2025, 09:00",
     vesselName: "Pacific Glory",
     eta: "20th Sept 2025, 08:00",
-    shipPrincipal: "KMTC",
+    shipPrincipal: "NYK",
     changeOfDestination: null,
     status: "completed",
     createdOn: "15 Aug 2025",
