@@ -330,6 +330,64 @@ export default function DocumentViewerPage() {
         onRequestChanges={handleRequestChanges}
         onUnlock={handleUnlock}
       />
+
+      {/* Audit Log Section */}
+      <div className="bg-gray-50 border-t border-gray-200 p-6">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-xl font-bold text-gray-900 mb-6">Audit Log</h2>
+
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Edited By</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Original Data Field</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Edited Data Field</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Time</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {auditTrail.getEntries()
+                  .filter(entry => entry.details.includes(document.id) || entry.details.includes(document.documentName))
+                  .slice(0, 10)
+                  .map((entry, index) => {
+                    const date = new Date(entry.timestamp)
+                    const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+                    const dateStr = date.toLocaleDateString('en-GB')
+
+                    return (
+                      <tr key={entry.id} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="py-4 px-4">
+                          <span className="text-blue-600 font-medium">{entry.user}</span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span className="text-sm text-blue-600">
+                            {entry.action === "Document Updated" ? "Previous field values" : entry.action}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span className="text-sm text-blue-600">
+                            {entry.details}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 text-sm text-gray-700">{timeStr}</td>
+                        <td className="py-4 px-4 text-sm text-gray-700">{dateStr}</td>
+                      </tr>
+                    )
+                  })}
+                {auditTrail.getEntries().filter(entry => entry.details.includes(document.id) || entry.details.includes(document.documentName)).length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="py-8 px-4 text-center text-gray-500">
+                      No audit entries found for this document
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

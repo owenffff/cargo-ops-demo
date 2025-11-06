@@ -81,47 +81,54 @@ export function ProgressStepper({ currentStatus, stages, shipmentId = "" }: Prog
   return (
     <div className="bg-white border-b border-gray-200 py-6 px-6">
       <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between">
           {steps.map((step, index) => (
-            <div key={step.id} className="flex items-center flex-1">
-              {/* Step indicator */}
-              <Link
-                href={getStepRoute(step.id)}
-                className="flex flex-col items-center group cursor-pointer relative"
-                prefetch={true}
-              >
-                <div
-                  className={cn(
-                    "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all",
-                    "group-hover:scale-110 group-hover:shadow-md",
-                    step.completed
-                      ? "bg-green-500 border-green-500"
-                      : step.active
-                        ? "bg-blue-500 border-blue-500"
-                        : "bg-white border-gray-300",
-                  )}
+            <div key={step.id} className="flex flex-1 relative">
+              {/* Step column - centered */}
+              <div className="flex flex-col items-center flex-shrink-0">
+                {/* Step indicator */}
+                <Link
+                  href={getStepRoute(step.id)}
+                  className="group cursor-pointer"
+                  prefetch={true}
                 >
-                  {step.completed ? (
-                    <Check className="w-5 h-5 text-white" />
-                  ) : step.active ? (
-                    <Circle className="w-4 h-4 text-white fill-white" />
-                  ) : (
-                    <Circle className="w-4 h-4 text-gray-300" />
-                  )}
-                </div>
-                <span
-                  className={cn(
-                    "text-xs mt-2 text-center max-w-[100px] group-hover:text-blue-600 transition-colors",
-                    step.completed || step.active ? "text-gray-900 font-medium" : "text-gray-500",
-                  )}
-                >
-                  {step.label}
-                </span>
-              </Link>
+                  <div
+                    className={cn(
+                      "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all",
+                      "group-hover:scale-110 group-hover:shadow-md",
+                      step.completed
+                        ? "bg-green-500 border-green-500"
+                        : step.active
+                          ? "bg-blue-500 border-blue-500"
+                          : "bg-white border-gray-300",
+                    )}
+                  >
+                    {step.completed ? (
+                      <Check className="w-5 h-5 text-white" />
+                    ) : step.active ? (
+                      <Circle className="w-4 h-4 text-white fill-white" />
+                    ) : (
+                      <Circle className="w-4 h-4 text-gray-300" />
+                    )}
+                  </div>
+                </Link>
 
-              {/* Connector line */}
+                {/* Label directly under icon */}
+                <Link href={getStepRoute(step.id)} className="group cursor-pointer" prefetch={true}>
+                  <span
+                    className={cn(
+                      "text-xs mt-2 text-center max-w-[100px] block group-hover:text-blue-600 transition-colors",
+                      step.completed || step.active ? "text-gray-900 font-medium" : "text-gray-500",
+                    )}
+                  >
+                    {step.label}
+                  </span>
+                </Link>
+              </div>
+
+              {/* Connector line - positioned at circle level */}
               {index < steps.length - 1 && (
-                <div className="flex-1 h-0.5 mx-2 -mt-8 relative z-0">
+                <div className="flex-1 h-0.5 mx-2" style={{ marginTop: '20px' }}>
                   <div className={cn("h-full", step.completed ? "bg-green-500" : "bg-gray-300")} />
                 </div>
               )}

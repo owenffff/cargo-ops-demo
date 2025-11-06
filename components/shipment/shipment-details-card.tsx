@@ -53,6 +53,21 @@ export function ShipmentDetailsCard({ shipment }: ShipmentDetailsCardProps) {
           </div>
         </div>
       </div>
+
+      {/* Operations Type Pills */}
+      <div className="mt-6 pt-6 border-t border-gray-200">
+        <div className="flex flex-wrap gap-2">
+          <span className="px-4 py-2 rounded-full bg-gray-100 text-gray-700 text-sm font-medium">
+            Bunkering
+          </span>
+          <span className="px-4 py-2 rounded-full bg-gray-100 text-gray-700 text-sm font-medium">
+            Loading
+          </span>
+          <span className="px-4 py-2 rounded-full bg-purple-100 text-purple-700 text-sm font-medium">
+            Discharge
+          </span>
+        </div>
+      </div>
     </div>
   )
 }
