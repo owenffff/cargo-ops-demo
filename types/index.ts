@@ -72,27 +72,21 @@ export interface ExtractedBLField {
 }
 
 export interface ExtractedBLFields {
-  blNumber: ExtractedBLField
-  date: ExtractedBLField
-  vesselName: ExtractedBLField
-  voyageNumber: ExtractedBLField
-  shipperName: ExtractedBLField
-  shipperAddress: ExtractedBLField
-  shipperContact: ExtractedBLField
-  consigneeName: ExtractedBLField
-  consigneeAddress: ExtractedBLField
-  consigneeContact: ExtractedBLField
+  blNo: ExtractedBLField
+  shipperExporter: ExtractedBLField
+  consignee: ExtractedBLField
   notifyParty: ExtractedBLField
+  oceanVessel: ExtractedBLField
+  voyageNo: ExtractedBLField
   portOfLoading: ExtractedBLField
   portOfDischarge: ExtractedBLField
-  placeOfDelivery: ExtractedBLField
-  numberOfUnits: ExtractedBLField
-  weight: ExtractedBLField
-  volume: ExtractedBLField
-  containerNumbers: ExtractedBLField
-  cargoDescription: ExtractedBLField
-  freightTerms: ExtractedBLField
-  specialInstructions: ExtractedBLField
+  marksAndNumbers: ExtractedBLField
+  descriptionOfGoods: ExtractedBLField
+  numberOfPackages: ExtractedBLField
+  grossWeight: ExtractedBLField
+  measurement: ExtractedBLField
+  freightPrepaidAt: ExtractedBLField
+  dateOfIssue: ExtractedBLField
 }
 
 export interface Document {

@@ -143,7 +143,7 @@ export default function ValidationPage() {
       processingStatus: "ready" as const,
       extractedFields,
       aiConfidenceScore: avgConfidence,
-      numberOfUnits: parseInt(extractedFields.numberOfUnits.value) || 0,
+      numberOfUnits: parseInt(extractedFields.numberOfPackages.value.replace(/[^0-9]/g, "")) || 0,
       lastUpdated: new Date().toLocaleString(),
     }
 

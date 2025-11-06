@@ -11,7 +11,6 @@ import {
   Save,
   Flag,
   MessageSquare,
-  Info,
   RotateCcw,
   Filter,
   Edit,
@@ -145,10 +144,11 @@ export function ExtractedFieldsTable({ fields, mode, locked, onSave }: Extracted
   const renderField = (fieldKey: keyof ExtractedBLFields, field: ExtractedBLField) => {
     const isLowConfidence = field.confidence < 95
     const isMultiline =
-      fieldKey === "cargoDescription" ||
-      fieldKey === "specialInstructions" ||
-      fieldKey === "shipperAddress" ||
-      fieldKey === "consigneeAddress"
+      fieldKey === "shipperExporter" ||
+      fieldKey === "consignee" ||
+      fieldKey === "notifyParty" ||
+      fieldKey === "marksAndNumbers" ||
+      fieldKey === "descriptionOfGoods"
 
     // Apply filter
     if (filter === "modified" && !field.isModified) return null
@@ -243,13 +243,6 @@ export function ExtractedFieldsTable({ fields, mode, locked, onSave }: Extracted
                 <RotateCcw className="w-4 h-4" />
               </button>
             )}
-            <button
-              onClick={() => setTooltipField(tooltipField === fieldKey ? null : fieldKey)}
-              className="p-1.5 rounded hover:bg-gray-100 text-gray-600 transition-colors"
-              title="View details"
-            >
-              <Info className="w-4 h-4" />
-            </button>
           </div>
         </td>
       </tr>
@@ -362,47 +355,27 @@ export function ExtractedFieldsTable({ fields, mode, locked, onSave }: Extracted
             </tr>
           </thead>
           <tbody>
-            {/* Basic Information */}
+            {/* Parties */}
             <tr className="bg-gray-100">
               <td colSpan={4} className="py-2 px-4 text-xs font-semibold text-gray-700 uppercase">
-                Basic Information
+                Parties
               </td>
             </tr>
-            {renderField("blNumber", editedFields.blNumber)}
-            {renderField("date", editedFields.date)}
-            {renderField("vesselName", editedFields.vesselName)}
-            {renderField("voyageNumber", editedFields.voyageNumber)}
-
-            {/* Shipper Details */}
-            <tr className="bg-gray-100">
-              <td colSpan={4} className="py-2 px-4 text-xs font-semibold text-gray-700 uppercase">
-                Shipper Details
-              </td>
-            </tr>
-            {renderField("shipperName", editedFields.shipperName)}
-            {renderField("shipperAddress", editedFields.shipperAddress)}
-            {renderField("shipperContact", editedFields.shipperContact)}
-
-            {/* Consignee Details */}
-            <tr className="bg-gray-100">
-              <td colSpan={4} className="py-2 px-4 text-xs font-semibold text-gray-700 uppercase">
-                Consignee Details
-              </td>
-            </tr>
-            {renderField("consigneeName", editedFields.consigneeName)}
-            {renderField("consigneeAddress", editedFields.consigneeAddress)}
-            {renderField("consigneeContact", editedFields.consigneeContact)}
+            {renderField("blNo", editedFields.blNo)}
+            {renderField("shipperExporter", editedFields.shipperExporter)}
+            {renderField("consignee", editedFields.consignee)}
             {renderField("notifyParty", editedFields.notifyParty)}
 
-            {/* Shipping Details */}
+            {/* Vessel Details */}
             <tr className="bg-gray-100">
               <td colSpan={4} className="py-2 px-4 text-xs font-semibold text-gray-700 uppercase">
-                Shipping Details
+                Vessel Details
               </td>
             </tr>
+            {renderField("oceanVessel", editedFields.oceanVessel)}
+            {renderField("voyageNo", editedFields.voyageNo)}
             {renderField("portOfLoading", editedFields.portOfLoading)}
             {renderField("portOfDischarge", editedFields.portOfDischarge)}
-            {renderField("placeOfDelivery", editedFields.placeOfDelivery)}
 
             {/* Cargo Details */}
             <tr className="bg-gray-100">
@@ -410,13 +383,20 @@ export function ExtractedFieldsTable({ fields, mode, locked, onSave }: Extracted
                 Cargo Details
               </td>
             </tr>
-            {renderField("numberOfUnits", editedFields.numberOfUnits)}
-            {renderField("weight", editedFields.weight)}
-            {renderField("volume", editedFields.volume)}
-            {renderField("containerNumbers", editedFields.containerNumbers)}
-            {renderField("cargoDescription", editedFields.cargoDescription)}
-            {renderField("freightTerms", editedFields.freightTerms)}
-            {renderField("specialInstructions", editedFields.specialInstructions)}
+            {renderField("marksAndNumbers", editedFields.marksAndNumbers)}
+            {renderField("descriptionOfGoods", editedFields.descriptionOfGoods)}
+            {renderField("numberOfPackages", editedFields.numberOfPackages)}
+            {renderField("grossWeight", editedFields.grossWeight)}
+            {renderField("measurement", editedFields.measurement)}
+
+            {/* Additional Information */}
+            <tr className="bg-gray-100">
+              <td colSpan={4} className="py-2 px-4 text-xs font-semibold text-gray-700 uppercase">
+                Additional Information
+              </td>
+            </tr>
+            {renderField("freightPrepaidAt", editedFields.freightPrepaidAt)}
+            {renderField("dateOfIssue", editedFields.dateOfIssue)}
           </tbody>
         </table>
       </div>
