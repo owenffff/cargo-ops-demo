@@ -18,7 +18,7 @@ const statusToStageLabel: Record<string, string> = {
   "portnet-submission": "PortNet Submission",
   "pre-arrival-validation": "Cargo Pre-Arrival Validation",
   "discharge-summary": "Discharge Summary",
-  "vessel-arrival": "Vessel Arrival",
+  "vessel-arrival": "Unberthing",
   completed: "Completed",
 }
 

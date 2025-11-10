@@ -145,7 +145,7 @@ export function generateShipmentReport(shipment: Shipment, manifest?: ManifestDa
   lines.push(`PortNet Submission: ${shipment.stages.portnetSubmission ? "✓ Complete" : "○ Pending"}`)
   lines.push(`Pre-Arrival Validation: ${shipment.stages.preArrivalValidation ? "✓ Complete" : "○ Pending"}`)
   lines.push(`Discharge Summary: ${shipment.stages.dischargeSummary ? "✓ Complete" : "○ Pending"}`)
-  lines.push(`Vessel Arrival: ${shipment.stages.vesselArrival ? "✓ Complete" : "○ Pending"}`)
+  lines.push(`Unberthing: ${shipment.stages.vesselArrival ? "✓ Complete" : "○ Pending"}`)
   lines.push("")
   lines.push("=".repeat(60))
   lines.push(`Generated: ${new Date().toLocaleString()}`)

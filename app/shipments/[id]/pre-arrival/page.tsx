@@ -7,9 +7,8 @@ import { LocalStorage } from "@/lib/storage"
 import { ProgressStepper } from "@/components/shipment/progress-stepper"
 import { ShipmentDetailsCard } from "@/components/shipment/shipment-details-card"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, AlertTriangle, CheckCircle, FileText, Download } from "lucide-react"
-import { StatusChip } from "@/components/status-chip"
-import { ConfidenceBar } from "@/components/confidence-bar"
+import { Badge } from "@/components/ui/badge"
+import { ArrowLeft, FileText, Upload } from "lucide-react"
 import Link from "next/link"
 
 export default function PreArrivalValidationPage() {
@@ -30,52 +29,6 @@ export default function PreArrivalValidationPage() {
       </div>
     )
   }
-
-  const validationChecks = [
-    {
-      id: 1,
-      check: "Manifest vs VIN List",
-      status: "passed",
-      confidence: 100,
-      details: "All 50 VINs match manifest entries",
-      timestamp: "2025-08-20 10:15:00",
-    },
-    {
-      id: 2,
-      check: "Manifest vs PortNet Summary",
-      status: "passed",
-      confidence: 98,
-      details: "Cargo details verified against PortNet records",
-      timestamp: "2025-08-20 10:16:30",
-    },
-    {
-      id: 3,
-      check: "BL vs VIN List",
-      status: "passed",
-      confidence: 100,
-      details: "All Bill of Lading entries match VIN list",
-      timestamp: "2025-08-20 10:17:45",
-    },
-    {
-      id: 4,
-      check: "Change of Destination Check",
-      status: "passed",
-      confidence: 100,
-      details: "No COD requests detected",
-      timestamp: "2025-08-20 10:18:00",
-    },
-  ]
-
-  const alerts = [
-    {
-      id: 1,
-      type: "info",
-      title: "Pre-Arrival Validation Complete",
-      message: "All validation checks passed successfully. Ready for discharge summary generation.",
-      timestamp: "2025-08-20 10:18:30",
-      resolved: true,
-    },
-  ]
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -108,133 +61,173 @@ export default function PreArrivalValidationPage() {
 
         <ShipmentDetailsCard shipment={shipment} />
 
-        {/* Header */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 mt-6 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <FileText className="w-6 h-6 text-blue-600" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Cargo Pre-Arrival Validation</h1>
-                <p className="text-sm text-gray-600">AI cross-checks before vessel arrival</p>
-              </div>
+        {/* Header with Status Badge */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 mt-6 mb-6 flex items-start gap-3">
+          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold">
+            3
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-2">
+              <h1 className="text-lg font-semibold text-gray-900">Pre-Arrival Validation</h1>
+              <Badge variant="default" className="bg-green-600 text-white border-green-700">
+                Acknowledged by PortNet
+              </Badge>
             </div>
-            <StatusChip status="completed" label="Validated" />
+            <p className="text-sm text-gray-700">
+              Validate all documents and verify cargo manifest against PortNet Summary before Unberthing
+            </p>
           </div>
         </div>
 
-        {/* Alerts Dashboard */}
+        {/* Documents Section */}
         <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Alerts & Issues</h2>
-          {alerts.map((alert) => (
-            <div
-              key={alert.id}
-              className={`p-4 rounded-lg border mb-3 last:mb-0 ${
-                alert.type === "error"
-                  ? "bg-red-50 border-red-200"
-                  : alert.type === "warning"
-                    ? "bg-amber-50 border-amber-200"
-                    : "bg-blue-50 border-blue-200"
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                {alert.type === "error" ? (
-                  <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                ) : alert.type === "warning" ? (
-                  <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                ) : (
-                  <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                )}
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-1">
-                    <p className="font-semibold text-gray-900">{alert.title}</p>
-                    <span className="text-xs text-gray-500">{alert.timestamp}</span>
-                  </div>
-                  <p className="text-sm text-gray-700 mb-2">{alert.message}</p>
-                  {alert.resolved && (
-                    <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700">
-                      <CheckCircle className="w-3 h-3" />
-                      Resolved
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+          <div className="flex items-center gap-2 mb-4">
+            <FileText className="w-5 h-5 text-gray-700" />
+            <h2 className="text-lg font-semibold text-gray-900">Documents</h2>
+          </div>
 
-        {/* Validation Checks */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Validation Checks</h2>
-          <div className="space-y-4">
-            {validationChecks.map((check) => (
-              <div key={check.id} className="p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    {check.status === "passed" ? (
-                      <CheckCircle className="w-5 h-5 text-green-600" />
-                    ) : (
-                      <AlertTriangle className="w-5 h-5 text-amber-600" />
-                    )}
-                    <div>
-                      <p className="font-medium text-gray-900">{check.check}</p>
-                      <p className="text-sm text-gray-600">{check.details}</p>
+          <div className="overflow-x-auto mb-6">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">Document Name</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">AI Confidence Score (Extraction)</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">Last Updated</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-gray-100">
+                  <td className="py-3 px-4 text-sm text-gray-900">Cargo Manifest</td>
+                  <td className="py-3 px-4">
+                    <span className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded">NA, generated by system</span>
+                  </td>
+                  <td className="py-3 px-4 text-sm text-gray-900">21/09/2025 17:00</td>
+                  <td className="py-3 px-4">
+                    <div className="flex gap-2 text-sm">
+                      <Button variant="link" size="sm" className="text-blue-600 p-0 h-auto">
+                        View/Edit
+                      </Button>
+                      <span className="text-gray-300">|</span>
+                      <Button variant="link" size="sm" className="text-blue-600 p-0 h-auto">
+                        Download
+                      </Button>
+                      <span className="text-gray-300">|</span>
+                      <Button variant="link" size="sm" className="text-red-600 p-0 h-auto">
+                        Delete
+                      </Button>
                     </div>
-                  </div>
-                  <span className="text-xs text-gray-500">{check.timestamp}</span>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <p className="text-sm text-gray-600">AI Confidence Score</p>
-                    <p className="text-sm font-medium text-gray-900">{check.confidence}%</p>
-                  </div>
-                  <ConfidenceBar score={check.confidence} />
-                </div>
-              </div>
-            ))}
+                  </td>
+                </tr>
+                <tr className="border-b border-gray-100">
+                  <td className="py-3 px-4 text-sm text-gray-900">PortNet Summary</td>
+                  <td className="py-3 px-4">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden max-w-[200px]">
+                        <div className="h-full bg-green-500" style={{ width: "100%" }} />
+                      </div>
+                      <span className="text-sm text-gray-900 font-medium">100</span>
+                    </div>
+                  </td>
+                  <td className="py-3 px-4 text-sm text-gray-900">21/09/2025 17:00</td>
+                  <td className="py-3 px-4">
+                    <div className="flex gap-2 text-sm">
+                      <Button variant="link" size="sm" className="text-blue-600 p-0 h-auto">
+                        View/Edit
+                      </Button>
+                      <span className="text-gray-300">|</span>
+                      <Button variant="link" size="sm" className="text-blue-600 p-0 h-auto">
+                        Download
+                      </Button>
+                      <span className="text-gray-300">|</span>
+                      <Button variant="link" size="sm" className="text-red-600 p-0 h-auto">
+                        Delete
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center justify-between">
+            <div className="flex gap-3">
+              <Button className="gap-2">
+                <Upload className="w-4 h-4" />
+                Upload Document
+              </Button>
+              <Button variant="outline">Request PortNet Summary Resubmission</Button>
+            </div>
+            <Button variant="outline" asChild>
+              <Link href={`/shipments/${shipment.id}/audit`}>View Audit Trail</Link>
+            </Button>
           </div>
         </div>
 
-        {/* Summary Statistics */}
+        {/* Document Validation Table */}
         <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Validation Summary</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-1">Total Checks</p>
-              <p className="text-2xl font-bold text-gray-900">{validationChecks.length}</p>
-            </div>
-            <div className="p-4 bg-green-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-1">Passed</p>
-              <p className="text-2xl font-bold text-green-700">
-                {validationChecks.filter((c) => c.status === "passed").length}
-              </p>
-            </div>
-            <div className="p-4 bg-amber-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-1">Warnings</p>
-              <p className="text-2xl font-bold text-amber-700">0</p>
-            </div>
-            <div className="p-4 bg-red-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-1">Errors</p>
-              <p className="text-2xl font-bold text-red-700">0</p>
-            </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">Cargo Manifest</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">PortNet Summary</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">AI Match Score</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">Errors</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-gray-100">
+                  <td className="py-3 px-4">
+                    <Button variant="link" className="text-blue-600 p-0 h-auto font-normal">
+                      Glovis_Manifest
+                    </Button>
+                  </td>
+                  <td className="py-3 px-4">
+                    <Button variant="link" className="text-blue-600 p-0 h-auto font-normal">
+                      Glovis_PortNetSummary
+                    </Button>
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden max-w-[200px]">
+                        <div className="h-full bg-green-500" style={{ width: "100%" }} />
+                      </div>
+                      <span className="text-sm text-gray-900 font-medium">100</span>
+                    </div>
+                  </td>
+                  <td className="py-3 px-4 text-sm text-gray-900">No Errors</td>
+                  <td className="py-3 px-4">
+                    <div className="flex gap-2 text-sm">
+                      <Button variant="link" size="sm" className="text-blue-600 p-0 h-auto">
+                        View/Edit
+                      </Button>
+                      <span className="text-gray-300">|</span>
+                      <Button variant="link" size="sm" className="text-blue-600 p-0 h-auto">
+                        Download
+                      </Button>
+                      <span className="text-gray-300">|</span>
+                      <Button variant="link" size="sm" className="text-red-600 p-0 h-auto">
+                        Delete
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
         {/* Actions */}
         <div className="flex justify-between items-center">
-          <Button variant="outline" className="gap-2 bg-transparent">
-            <Download className="w-4 h-4" />
-            Download Validation Report
+          <Button variant="outline" asChild>
+            <Link href={`/shipments/${shipment.id}/portnet-submission`}>Back to PortNet Submission</Link>
           </Button>
-          <div className="flex gap-3">
-            <Button variant="outline" asChild>
-              <Link href={`/shipments/${shipment.id}/portnet-submission`}>View PortNet Submission</Link>
-            </Button>
-            <Button asChild>
-              <Link href={`/shipments/${shipment.id}/discharge`}>Generate Discharge Summary</Link>
-            </Button>
-          </div>
+          <Button asChild>
+            <Link href={`/shipments/${shipment.id}/discharge`}>Proceed to Discharge Summary</Link>
+          </Button>
         </div>
       </div>
     </div>

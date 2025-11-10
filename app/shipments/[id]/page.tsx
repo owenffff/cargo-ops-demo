@@ -129,7 +129,7 @@ export default function ShipmentDetailPage() {
             <Button variant="outline" asChild className="w-full bg-transparent">
               <Link href={`/shipments/${shipment.id}/vessel-arrival`}>
                 <FileText className="w-4 h-4 mr-2" />
-                Vessel Arrival
+                Unberthing
               </Link>
             </Button>
           </div>
@@ -169,7 +169,7 @@ function StageContent({ shipment }: { shipment: Shipment }) {
             <h3 className="font-semibold text-cyan-900 mb-2">Next Steps:</h3>
             <ul className="list-disc list-inside text-sm text-cyan-800 space-y-1">
               <li>Confirm berth allocation</li>
-              <li>Verify vessel arrival time</li>
+              <li>Verify Unberthing time</li>
               <li>Validate terminal assignment</li>
               <li>Approve berth booking</li>
             </ul>

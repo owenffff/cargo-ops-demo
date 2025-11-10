@@ -43,7 +43,7 @@ export function ShipmentsFilters({
             <option value="portnet-submission">PortNet Submission</option>
             <option value="cargo-validation">Cargo Validation</option>
             <option value="discharge-summary">Discharge Summary</option>
-            <option value="vessel-arrival">Vessel Arrival</option>
+            <option value="vessel-arrival">Unberthing</option>
           </select>
         </div>
       </div>

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a **Cargo Operations System** - an AI-assisted cargo operations management platform built with Next.js 15. The application manages the full lifecycle of shipping cargo operations, from email ingestion through vessel arrival, with AI-powered document extraction and validation.
+This is a **Cargo Operations System** - an AI-assisted cargo operations management platform built with Next.js 15. The application manages the full lifecycle of shipping cargo operations, from email ingestion through Unberthing, with AI-powered document extraction and validation.
 
 ## Development Commands
 
@@ -34,7 +34,7 @@ The application follows a 5-stage cargo operations workflow:
 2. **PortNet Submission** - Generate and submit EDI manifest to authorities
 3. **Pre-Arrival Validation** - Cross-validation of BL, VIN lists, and cargo allocation
 4. **Discharge Summary** - Cargo classification and discharge planning
-5. **Vessel Arrival** - Final arrival confirmation and audit trail
+5. **Unberthing** - Final arrival confirmation and audit trail
 
 #### Data Flow
 - **Client-side only**: All data is stored in `localStorage` (no backend)

@@ -72,7 +72,7 @@ export function ProgressStepper({ currentStatus, stages, shipmentId = "" }: Prog
     },
     {
       id: "vessel-arrival",
-      label: "Vessel Arrival",
+      label: "Unberthing",
       completed: stages.vesselArrival,
       active: currentStatus === "vessel-arrival",
     },

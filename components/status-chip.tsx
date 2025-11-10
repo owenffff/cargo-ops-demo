@@ -77,7 +77,7 @@ export function StatusChip({ status, label, size = "md" }: StatusChipProps) {
       bg: "bg-teal-100",
       text: "text-teal-700",
       icon: Ship,
-      defaultLabel: "Vessel Arrival",
+      defaultLabel: "Unberthing",
     },
   }
 

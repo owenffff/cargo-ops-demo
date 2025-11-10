@@ -43,7 +43,7 @@ export function ShipmentsTable({ shipments }: ShipmentsTableProps) {
                 Discharge Summary
               </th>
               <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
-                Vessel Arrival
+                Unberthing
               </th>
             </tr>
           </thead>
